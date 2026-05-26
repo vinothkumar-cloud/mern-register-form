@@ -42,6 +42,31 @@ app.post("/register", async (req, res) => {
   }
 });
 
+app.get("/users", async (req, res) => {
+  try {
+    const users = await User.find();
+    res.json(users);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({
+      message: "Error fetching users",
+    });
+  }
+});
+app.delete("/users/:id", async (req, res) => {
+  try {
+    await User.findByIdAndDelete(req.params.id);
+    res.json({
+      message: "user deleted successfully",
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({
+      message: "error fetching data",
+    });
+  }
+});
+
 app.listen(5000, () => {
   console.log("Server running on port 5000");
 });

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import "./App.css";
 
 function App() {
@@ -8,6 +8,27 @@ function App() {
     email: "",
   });
 
+  const [users, setUsers] = useState([]);
+
+  // fetch users from backend
+  const fetchUsers = async () => {
+    try {
+      const response = await fetch("http://localhost:5000/users");
+
+      const data = await response.json();
+
+      setUsers(data);
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  // run once when page loads
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  // handle input changes
   const handleChange = (e) => {
     setForm({
       ...form,
@@ -15,7 +36,8 @@ function App() {
     });
   };
 
-  const handleClick = async (e) => {
+  // submit form
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     try {
@@ -31,71 +53,102 @@ function App() {
 
       console.log(data);
 
+      // clear form
       setForm({
         name: "",
         dob: "",
         email: "",
       });
+
+      // refresh users list
+      fetchUsers();
     } catch (err) {
-      console.error(err);
+      console.log(err);
     }
-    alert("login successfully");
+  };
+  const deleteUser = async (id) => {
+    try {
+      await fetch(`http://localhost:5000/users/${id}`, {
+        method: "DELETE",
+      });
+
+      fetchUsers();
+    } catch (err) {
+      console.log(err);
+    }
   };
 
   return (
     <div className="container">
-      <form className="form" onSubmit={handleClick}>
-        <h1>Register Form</h1>
+      <div className="main">
+        <form className="form" onSubmit={handleSubmit}>
+          <h1>Register Form</h1>
 
-        <div className="input-group">
-          <label htmlFor="name">Name:</label>
+          <div className="input-group">
+            <label>Name:</label>
 
-          <input
-            type="text"
-            id="name"
-            name="name"
-            required
-            onChange={handleChange}
-            value={form.name}
-          />
-        </div>
+            <input
+              type="text"
+              name="name"
+              value={form.name}
+              onChange={handleChange}
+              required
+            />
+          </div>
 
-        <br />
+          <div className="input-group">
+            <label>DOB:</label>
 
-        <div className="input-group">
-          <label htmlFor="dob">DOB:</label>
+            <input
+              type="date"
+              name="dob"
+              value={form.dob}
+              onChange={handleChange}
+              required
+            />
+          </div>
 
-          <input
-            type="date"
-            id="dob"
-            name="dob"
-            required
-            onChange={handleChange}
-            value={form.dob}
-          />
-        </div>
+          <div className="input-group">
+            <label>Email:</label>
 
-        <br />
+            <input
+              type="email"
+              name="email"
+              value={form.email}
+              onChange={handleChange}
+              required
+            />
+          </div>
 
-        <div className="input-group">
-          <label htmlFor="email">Email:</label>
-
-          <input
-            type="email"
-            id="email"
-            name="email"
-            required
-            onChange={handleChange}
-            value={form.email}
-          />
-        </div>
-
-        <br />
-
-        <div>
           <button type="submit">Submit</button>
+        </form>
+
+        <div className="users">
+          <h2>Users</h2>
+
+          {users.map((user) => (
+            <div key={user._id} className="user-card">
+              <p>
+                <strong>Name:</strong> {user.name}
+              </p>
+
+              <p>
+                <strong>DOB:</strong> {user.dob}
+              </p>
+
+              <p>
+                <strong>Email:</strong> {user.email}
+              </p>
+              <button
+                className="delete-btn"
+                onClick={() => deleteUser(user._id)}
+              >
+                Delete
+              </button>
+            </div>
+          ))}
         </div>
-      </form>
+      </div>
     </div>
   );
 }
